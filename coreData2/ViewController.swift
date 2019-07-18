@@ -33,6 +33,16 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         guardarDatosPlistEnCoreData()
+        //Agregar
+        let peticion = NSFetchRequest<Automovil>(entityName: "Automovil")
+        let primerTitulo = segmentedControl.titleForSegment(at: 0)!
+        peticion.predicate = NSPredicate(format: "busqueda == %@", primerTitulo)
+        do {
+            let resultados try managedContext.fetch(peticion)
+            //popularDatos(automovil: resultados.first!)
+        } catch let error as NSError {
+            print("No puede recuperar datos \(error), \(error.userInfo)")
+        }
     }
 
 
@@ -58,7 +68,20 @@ class ViewController: UIViewController {
                 let entity = NSEntityDescription.entity(forEntityName: "Automovil", in: managedContext)!
                 let automovil = Automovil(entity: entity, insertInto: managedContext)
                 let dictAutomovil = diccionarioDatosPlist as! [String: AnyObject]
+                automovil.nombre = dictAutomovil["nombre"] as? String
+                automovil.busqueda = dictAutomovil["busqueda"] as? String
+                automovil.calificacion = dictAutomovil["calificacion"] as! Double
                 
+                let nombreArchivo = dictAutomovil["nombreImagen"] as? String
+                let imagen = UIImage(named: nombreArchivo!)
+                let datosArchivoImg = imagen!.jpegData(compressionQuality: 0.5)!
+                automovil.datosImagen = NSData(data: datosArchivoImg)
+                automovil.ultimaPrueba = dictAutomovil["ultimaPrueba"] as? NSDate
+                
+                let vecesProbado = dictAutomovil["vecesProbado"] as! NSNumber
+                automovil.vecesProbado = vecesProbado.int32Value
+                
+                try! managedContext.save()
             }
             
         }
